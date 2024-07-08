@@ -4,8 +4,7 @@
 #include "config.cpp"
 
 const std::string CONFIG_FILE_CLI_ARG_NAME = "--configfile=";
-const std::string PRODUCT_NAME = "shity";
-
+const std::string PRODUCT_NAME = "deforlis";
 
 std::string configFile(std::string filePath)
 {
@@ -48,6 +47,10 @@ int main(int argc, char *argv[])
     std::string configFileContent = configFile(configFileCliArgument);
     std::cout << "Hello from " + PRODUCT_NAME + " web server\n";
     Config config = Config(configFileContent);
-    std::cout << "Gonna bind to " + config.binding.IPv4addr + ":" + config.binding.IPv4port + "\n";
+    //std::cout << config.bindings.size() << "\n";
+    for (auto i = config.bindings.begin(); i != config.bindings.end(); ++i)
+    {
+        std::cout << (*i).bindingName << " " << (*i).IPv4addr << ":" << (*i).IPv4port <<  "\n";
+    }
     return 0;
 }
