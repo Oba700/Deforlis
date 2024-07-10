@@ -64,7 +64,7 @@ public:
         while (true)
         {
             const std::string bindingSectionHeader = "[binding]";
-            int bindingSectionStart = configFileContent.find(bindingSectionHeader);
+            int bindingSectionStart = configFileContent.find(bindingSectionHeader,0);
             if (bindingSectionStart == -1)
             {
                 if (this->bindings.size() == 0)

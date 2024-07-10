@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include "config.cpp"
+#include "listen.cpp"
 
 const std::string CONFIG_FILE_CLI_ARG_NAME = "--configfile=";
 const std::string PRODUCT_NAME = "deforlis";
@@ -41,7 +42,7 @@ int main(int argc, char *argv[])
     }
     if (configFileCliArgument.length() == 0)
     {
-        configFileCliArgument = PRODUCT_NAME + ".json";
+        configFileCliArgument = PRODUCT_NAME + ".ini";
         std::cout << "Nothing specified with " + CONFIG_FILE_CLI_ARG_NAME + ". Using " + configFileCliArgument + " instead.\n";
     }
     std::string configFileContent = configFile(configFileCliArgument);
@@ -51,6 +52,7 @@ int main(int argc, char *argv[])
     for (auto i = config.bindings.begin(); i != config.bindings.end(); ++i)
     {
         std::cout << (*i).bindingName << " " << (*i).IPv4addr << ":" << (*i).IPv4port <<  "\n";
+        listen((*i).IPv4port);
     }
     return 0;
 }
