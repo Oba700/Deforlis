@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <thread>
 #include <string>
 #include "config.cpp"
 #include "listen.cpp"
@@ -52,7 +53,7 @@ int main(int argc, char *argv[])
     for (auto i = config.bindings.begin(); i != config.bindings.end(); ++i)
     {
         std::cout << (*i).bindingName << " " << (*i).IPv4addr << ":" << (*i).IPv4port <<  "\n";
-        listen((*i).IPv4port);
+        listen((*i).IPv4addr,(*i).IPv4port);
     }
     return 0;
 }

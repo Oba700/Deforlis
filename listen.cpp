@@ -2,10 +2,13 @@
 #include <iostream>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 
-int listen(std::string IPv4port)
+
+int listen(std::string IPv4addr, std::string IPv4port)
 {
+    const char* ccIPv4addr = IPv4addr.c_str();
     // creating socket
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -13,7 +16,7 @@ int listen(std::string IPv4port)
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_port = htons(std::stoi(IPv4port));
-    serverAddress.sin_addr.s_addr = INADDR_ANY;
+    serverAddress.sin_addr.s_addr =  inet_addr(ccIPv4addr);
 
     // binding socket.
     int bindedSocketStatus = bind(serverSocket, (struct sockaddr *)&serverAddress,
