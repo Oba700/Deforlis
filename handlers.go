@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -23,12 +24,24 @@ func handlingDispatcher(conn net.Conn, Handler handler, BufferSize int) {
 	}
 }
 
+func handlingTerminator(resp []byte, needConnClose bool, conn net.Conn, Handler handler, BufferSize int) {
+	conn.Write(resp)
+	if needConnClose {
+		conn.Close()
+	} else {
+		handlingDispatcher(conn, Handler, BufferSize)
+	}
+
+}
+
 func catalog(conn net.Conn, handler handler, BufferSize int) {
-	//defer conn.Close()
 	buf := make([]byte, BufferSize)
 	_, err := conn.Read((buf))
 	if err != nil {
-		fmt.Println(err)
+		if err == io.EOF {
+			fmt.Println("Помилка при читанні запиту")
+			fmt.Println(err)
+		}
 		return
 	}
 	request := strings.Split(string(buf), "\n")
@@ -39,11 +52,18 @@ func catalog(conn net.Conn, handler handler, BufferSize int) {
 	} else {
 		reqPath = fmt.Sprintf("%s%s", handler.Path, Path)
 	}
+	var needConnClose bool = true
+	for _, header := range request {
+		if strings.HasPrefix(header, "Connection:") && strings.Contains(header, "keep-alive") {
+			needConnClose = false
+		}
+	}
 	reqStuffStat, err := os.Lstat(reqPath)
 	if err != nil {
-		fmt.Println(Path)
-		conn.Write(notFound())
-		handlingDispatcher(conn, handler, BufferSize)
+		//fmt.Println(Path)
+		// conn.Write()
+		handlingTerminator(notFound(handler.Path), true, conn, handler, BufferSize)
+		return
 	}
 	switch mode := reqStuffStat.Mode(); {
 	case mode.IsRegular():
@@ -59,10 +79,8 @@ Content-Length: %d
 
 `, mimeType, len(dat)+1))
 		resp := append(headers, dat...)
-		conn.Write(append(resp, []byte("\n")...))
-		handlingDispatcher(conn, handler, BufferSize)
+		handlingTerminator(append(resp, []byte("\n")...), needConnClose, conn, handler, BufferSize)
 	case mode.IsDir():
-		// fmt.Println("directory")
 		var htmlTableRows string
 		entries, err := os.ReadDir(reqPath)
 		if err != nil {
@@ -71,15 +89,11 @@ Content-Length: %d
 		for _, e := range entries {
 			htmlTableRows += catalogEntrieHTML(e, Path)
 		}
-		conn.Write([]byte(catalogHTML(htmlTableRows, Path)))
-		handlingDispatcher(conn, handler, BufferSize)
-		// fmt.Println(os.ReadDir(reqPath))
+		//conn.Write([]byte(catalogHTML(htmlTableRows, Path)))
+		handlingTerminator([]byte(catalogHTML(htmlTableRows, Path)), needConnClose, conn, handler, BufferSize)
+		//handlingDispatcher(conn, handler, BufferSize)
 	default:
 		fmt.Println("Похуй")
-		// case mode&fs.ModeSymlink != 0:
-		// 	fmt.Println("symbolic link")
-		// case mode&fs.ModeNamedPipe != 0:
-		// 	fmt.Println("named pipe")
 	}
 
 }

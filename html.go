@@ -22,9 +22,9 @@ func catalogHTML(rows string, path string) string {
 <table class="w3-table">
 <tr>
 <th/>
-<th>Name</th>
-<th>Size</th>
-<th>Modified</th>
+<th>Ім'я</th>
+<th>Розмір</th>
+<th>Змінено</th>
 </tr>
 %s
 </table>
@@ -40,8 +40,21 @@ Content-Length: %d
 	return headers + body + "\n"
 }
 
-func notFound() []byte {
-	var body []byte = []byte("\nSorry")
+func notFound(path string) []byte {
+	var body []byte = []byte(fmt.Sprintf(`
+<html>
+<head>
+<title>Не знайдено</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+<body>
+<div class="w3-container">
+	<h1>404</h1>
+	<p>Нічого не знайдено за шляхом %s</p>
+</div>
+</body>
+</html>`, path))
 	headers := fmt.Sprintf(`HTTP/1.1 404 Not Found
 Server: deforlis/prealpha
 Content-Type: text/html; charset=UTF-8
@@ -59,12 +72,15 @@ func catalogEntrieHTML(e os.DirEntry, path string) string {
 	} else {
 		emoji = "📃"
 	}
+	if path == "/" {
+		path = ""
+	}
 	return fmt.Sprintf(`<tr>
 	<td>
 		%s
 	</td>
 	<td>
-		<a href="%s%s">%s</a>
+		<a href="%s/%s">%s</a>
 	</td>
 	<td>
 		%d

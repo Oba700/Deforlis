@@ -14,7 +14,6 @@ type binding struct {
 }
 
 func bind(Binding binding, Handler handler, BufferSize int) {
-	// fmt.Println(Binding.Address)
 	ln, err := net.Listen("tcp", Binding.Address)
 	if err != nil {
 		panic(err)
@@ -22,6 +21,7 @@ func bind(Binding binding, Handler handler, BufferSize int) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
+			fmt.Println("Помилка прийому")
 			fmt.Println(err)
 			continue
 		}

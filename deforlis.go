@@ -24,7 +24,6 @@ func main() {
 		Handlers[Handler.Description] = Handler
 	}
 	for _, Binding := range Config.Bindings {
-		// fmt.Println("!!!!!!")
 		if len(Binding.Address) == 0 {
 			panic("Не вказано адресу біндінгу")
 		}
