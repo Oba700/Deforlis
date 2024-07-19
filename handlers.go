@@ -24,7 +24,7 @@ func handlingDispatcher(conn net.Conn, Handler handler, Buffer int) {
 }
 
 func catalog(conn net.Conn, fsPath string, Buffer int) {
-	// defer conn.Close()
+	//defer conn.Close()
 	buf := make([]byte, Buffer)
 	_, err := conn.Read((buf))
 	if err != nil {
@@ -42,13 +42,8 @@ func catalog(conn net.Conn, fsPath string, Buffer int) {
 	reqStuffStat, err := os.Lstat(reqPath)
 	if err != nil {
 		fmt.Println(Path)
-		if Path == "/favicon.ico" {
-			conn.Write(favicon())
-			return
-		} else {
-			fmt.Println("404")
-			return
-		}
+		conn.Write(notFound())
+		return
 	}
 	switch mode := reqStuffStat.Mode(); {
 	case mode.IsRegular():

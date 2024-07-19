@@ -38,7 +38,7 @@ Content-Length: %d
 	return headers + body + "\n"
 }
 
-func favicon() []byte {
+func notFound() []byte {
 	var body []byte = []byte("\nSorry")
 	headers := fmt.Sprintf(`HTTP/1.1 404 Not Found
 Server: deforlis/prealpha
