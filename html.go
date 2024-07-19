@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"time"
 )
@@ -11,6 +12,7 @@ func catalogHTML(rows string, path string) string {
 <html>
 <head>
 <title>Catalog %s</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>
 <body>
@@ -75,12 +77,32 @@ func catalogEntrieHTML(e os.DirEntry, path string) string {
 
 }
 
-var mockHTML string = `HTTP/1.1 200 OK
-Server: deforlis/prealpha
-Content-Type: text/html; charset=UTF-8
+// var mockHTML string = `HTTP/1.1 200 OK
+// Server: deforlis/prealpha
+// Content-Type: text/html; charset=UTF-8
 
+// <html>
+// <head>
+// <title>Hello there</title>
+// <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+// </head>
+// <body>
+// <h1>Hello there</h1>
+// <p>
+// Prealpaha deforlis mock function here. Things seem wired Huh?
+// </p>
+// <br>Method: %s
+// <br>Host: %s
+// <br>Path: %s
+// <br>Remote: %s
+// <p/>
+// <hr>
+// </body>
+// </html>
 
-<html>
+// `
+func mockHTML(Method, Host, Path string, clientPort net.Addr) string {
+	body := fmt.Sprintf(`<html>
 <head>
 <title>Hello there</title>
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
@@ -93,9 +115,14 @@ Prealpaha deforlis mock function here. Things seem wired Huh?
 <br>Method: %s
 <br>Host: %s
 <br>Path: %s
+<br>Remote: %s
 <p/>
 <hr>
 </body>
-</html>
-
-`
+</html>`, Method, Host, Path, clientPort)
+	headers := fmt.Sprintf(`HTTP/1 200 OK
+Server: deforlis/prealpha
+Content-Type: text/html; charset=UTF-8
+Content-Length: %d`, len([]byte(body))+2)
+	return headers + "\n\n" + body + "\n\n"
+}

@@ -14,18 +14,18 @@ type handler struct {
 	Path        string
 }
 
-func handlingDispatcher(conn net.Conn, Handler handler, Buffer int) {
+func handlingDispatcher(conn net.Conn, Handler handler, BufferSize int) {
 	switch Handler.Type {
 	case "mock":
 		go mock(conn)
 	case "catalog":
-		go catalog(conn, Handler.Path, Buffer)
+		go catalog(conn, Handler, BufferSize)
 	}
 }
 
-func catalog(conn net.Conn, fsPath string, Buffer int) {
+func catalog(conn net.Conn, handler handler, BufferSize int) {
 	//defer conn.Close()
-	buf := make([]byte, Buffer)
+	buf := make([]byte, BufferSize)
 	_, err := conn.Read((buf))
 	if err != nil {
 		fmt.Println(err)
@@ -34,16 +34,16 @@ func catalog(conn net.Conn, fsPath string, Buffer int) {
 	request := strings.Split(string(buf), "\n")
 	Path := strings.Split(request[0], " ")[1]
 	var reqPath string
-	if strings.HasSuffix(fsPath, "/") {
-		reqPath = fmt.Sprintf("%s%s", fsPath, Path[1:])
+	if strings.HasSuffix(handler.Path, "/") {
+		reqPath = fmt.Sprintf("%s%s", handler.Path, Path[1:])
 	} else {
-		reqPath = fmt.Sprintf("%s%s", fsPath, Path)
+		reqPath = fmt.Sprintf("%s%s", handler.Path, Path)
 	}
 	reqStuffStat, err := os.Lstat(reqPath)
 	if err != nil {
 		fmt.Println(Path)
 		conn.Write(notFound())
-		return
+		handlingDispatcher(conn, handler, BufferSize)
 	}
 	switch mode := reqStuffStat.Mode(); {
 	case mode.IsRegular():
@@ -60,6 +60,7 @@ Content-Length: %d
 `, mimeType, len(dat)+1))
 		resp := append(headers, dat...)
 		conn.Write(append(resp, []byte("\n")...))
+		handlingDispatcher(conn, handler, BufferSize)
 	case mode.IsDir():
 		// fmt.Println("directory")
 		var htmlTableRows string
@@ -71,6 +72,7 @@ Content-Length: %d
 			htmlTableRows += catalogEntrieHTML(e, Path)
 		}
 		conn.Write([]byte(catalogHTML(htmlTableRows, Path)))
+		handlingDispatcher(conn, handler, BufferSize)
 		// fmt.Println(os.ReadDir(reqPath))
 	default:
 		fmt.Println("Похуй")
@@ -93,6 +95,7 @@ func mock(conn net.Conn) {
 	request := strings.Split(string(buf), "\n")
 	var Method string = strings.Split(request[0], " ")[0]
 	var Path string = strings.Split(request[0], " ")[1]
+	var clientPort = conn.RemoteAddr()
 	var Host string
 	for _, s := range request {
 		if strings.HasPrefix(s, "Host: ") {
@@ -100,5 +103,5 @@ func mock(conn net.Conn) {
 		}
 	}
 
-	conn.Write([]byte(fmt.Sprintf(mockHTML, Method, Host, Path)))
+	conn.Write([]byte(mockHTML(Method, Host, Path, clientPort)))
 }

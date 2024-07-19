@@ -13,7 +13,7 @@ type binding struct {
 	Buffer      int
 }
 
-func bind(Binding binding, Handler handler, Buffer int) {
+func bind(Binding binding, Handler handler, BufferSize int) {
 	// fmt.Println(Binding.Address)
 	ln, err := net.Listen("tcp", Binding.Address)
 	if err != nil {
@@ -25,6 +25,6 @@ func bind(Binding binding, Handler handler, Buffer int) {
 			fmt.Println(err)
 			continue
 		}
-		handlingDispatcher(conn, Handler, Buffer)
+		handlingDispatcher(conn, Handler, BufferSize)
 	}
 }
