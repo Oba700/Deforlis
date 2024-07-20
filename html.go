@@ -12,6 +12,7 @@ func catalogHTML(rows string, path string) string {
 <html>
 <head>
 <title>Catalog %s</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>
@@ -44,6 +45,7 @@ func notFound(path string) []byte {
 	var body []byte = []byte(fmt.Sprintf(`
 <html>
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Не знайдено</title>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
@@ -90,37 +92,13 @@ func catalogEntrieHTML(e os.DirEntry, path string) string {
 	</td>
 	</tr>
 `, emoji, path, e.Name(), e.Name(), info.Size(), info.ModTime().UTC().Format(time.UnixDate))
-
 }
 
-// var mockHTML string = `HTTP/1.1 200 OK
-// Server: deforlis/prealpha
-// Content-Type: text/html; charset=UTF-8
-
-// <html>
-// <head>
-// <title>Hello there</title>
-// <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-// </head>
-// <body>
-// <h1>Hello there</h1>
-// <p>
-// Prealpaha deforlis mock function here. Things seem wired Huh?
-// </p>
-// <br>Method: %s
-// <br>Host: %s
-// <br>Path: %s
-// <br>Remote: %s
-// <p/>
-// <hr>
-// </body>
-// </html>
-
-// `
 func mockHTML(Method, Host, Path string, clientPort net.Addr) string {
 	body := fmt.Sprintf(`<html>
 <head>
 <title>Hello there</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>
 <body>

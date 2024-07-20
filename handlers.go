@@ -60,8 +60,7 @@ func catalog(conn net.Conn, handler handler, BufferSize int) {
 	}
 	reqStuffStat, err := os.Lstat(reqPath)
 	if err != nil {
-		//fmt.Println(Path)
-		// conn.Write()
+		// ЗРОБИТИ: Почитати про підтримку non-ASCII в URL📖💡🕵️‍♀️👩‍🦯 Наприклад net/url
 		handlingTerminator(notFound(handler.Path), true, conn, handler, BufferSize)
 		return
 	}
