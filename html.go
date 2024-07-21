@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"net"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -66,7 +68,7 @@ Content-Length: %d
 	return append(resp, []byte("\n")...)
 }
 
-func catalogEntrieHTML(e os.DirEntry, path string) string {
+func catalogEntrieHTML(path string, e os.DirEntry) string {
 	info, _ := e.Info()
 	var emoji string
 	if e.Type().IsDir() {
@@ -74,15 +76,21 @@ func catalogEntrieHTML(e os.DirEntry, path string) string {
 	} else {
 		emoji = "📃"
 	}
-	if path == "/" {
-		path = ""
+	path = strings.TrimPrefix(path, "/")
+	path = strings.TrimSuffix(path, "/")
+	link := "/"
+	pathElements := strings.Split(path, "/")
+	for _, pe := range pathElements {
+		link += url.PathEscape(pe) + "/"
 	}
+	link += url.PathEscape(e.Name())
+	fmt.Println("Link: " + link)
 	return fmt.Sprintf(`<tr>
 	<td>
 		%s
 	</td>
 	<td>
-		<a href="%s/%s">%s</a>
+		<a href="%s">%s</a>
 	</td>
 	<td>
 		%d
@@ -91,7 +99,7 @@ func catalogEntrieHTML(e os.DirEntry, path string) string {
 		%s
 	</td>
 	</tr>
-`, emoji, path, e.Name(), e.Name(), info.Size(), info.ModTime().UTC().Format(time.UnixDate))
+`, emoji, link, e.Name(), info.Size(), info.ModTime().UTC().Format(time.UnixDate))
 }
 
 func mockHTML(Method, Host, Path string, clientPort net.Addr) string {

@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 )
@@ -45,28 +46,27 @@ func catalog(conn net.Conn, handler handler, BufferSize int) {
 		return
 	}
 	request := strings.Split(string(buf), "\n")
-	Path := strings.Split(request[0], " ")[1]
-	var reqPath string
-	if strings.HasSuffix(handler.Path, "/") {
-		reqPath = fmt.Sprintf("%s%s", handler.Path, Path[1:])
-	} else {
-		reqPath = fmt.Sprintf("%s%s", handler.Path, Path)
+	reqPath := strings.Split(request[0], " ")[1]
+	quPath, quErr := url.QueryUnescape(reqPath)
+	osPath := handler.Path + quPath
+	if quErr != nil {
+		fmt.Println("URL запита попердолено")
 	}
+	fmt.Println(quPath)
 	var needConnClose bool = true
 	for _, header := range request {
 		if strings.HasPrefix(header, "Connection:") && strings.Contains(header, "keep-alive") {
 			needConnClose = false
 		}
 	}
-	reqStuffStat, err := os.Lstat(reqPath)
+	reqStuffStat, err := os.Lstat(osPath)
 	if err != nil {
-		// ЗРОБИТИ: Почитати про підтримку non-ASCII в URL📖💡🕵️‍♀️👩‍🦯 Наприклад net/url
 		handlingTerminator(notFound(handler.Path), true, conn, handler, BufferSize)
 		return
 	}
 	switch mode := reqStuffStat.Mode(); {
 	case mode.IsRegular():
-		dat, err := os.ReadFile(reqPath)
+		dat, err := os.ReadFile(osPath)
 		if err != nil {
 			panic(err)
 		}
@@ -81,16 +81,15 @@ Content-Length: %d
 		handlingTerminator(append(resp, []byte("\n")...), needConnClose, conn, handler, BufferSize)
 	case mode.IsDir():
 		var htmlTableRows string
-		entries, err := os.ReadDir(reqPath)
+		entries, err := os.ReadDir(osPath)
 		if err != nil {
 			panic(err)
 		}
 		for _, e := range entries {
-			htmlTableRows += catalogEntrieHTML(e, Path)
+			htmlTableRows += catalogEntrieHTML(quPath, e)
 		}
-		//conn.Write([]byte(catalogHTML(htmlTableRows, Path)))
-		handlingTerminator([]byte(catalogHTML(htmlTableRows, Path)), needConnClose, conn, handler, BufferSize)
-		//handlingDispatcher(conn, handler, BufferSize)
+
+		handlingTerminator([]byte(catalogHTML(htmlTableRows, quPath)), needConnClose, conn, handler, BufferSize)
 	default:
 		fmt.Println("Похуй")
 	}
