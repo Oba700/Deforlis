@@ -61,7 +61,7 @@ func catalog(conn net.Conn, handler handler, BufferSize int) {
 	}
 	reqStuffStat, err := os.Lstat(osPath)
 	if err != nil {
-		handlingTerminator(notFound(handler.Path), true, conn, handler, BufferSize)
+		handlingTerminator(notFound(quPath), true, conn, handler, BufferSize)
 		return
 	}
 	switch mode := reqStuffStat.Mode(); {

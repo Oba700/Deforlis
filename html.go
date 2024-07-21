@@ -10,6 +10,11 @@ import (
 )
 
 func catalogHTML(rows string, path string) string {
+	pathElements := strings.Split(path, "/")
+	cwd := pathElements[len(pathElements)-1]
+	if cwd == "" {
+		cwd = "/"
+	}
 	body := fmt.Sprintf(`
 <html>
 <head>
@@ -22,6 +27,7 @@ func catalogHTML(rows string, path string) string {
 <div class="w3-container">
 	<h1>%s</h1>
 </div>
+<hr>
 <table class="w3-table">
 <tr>
 <th/>
@@ -33,7 +39,7 @@ func catalogHTML(rows string, path string) string {
 </table>
 <hr>
 </body>
-</html>`, path, path, rows)
+</html>`, cwd, linkifyPath(path), rows)
 
 	headers := fmt.Sprintf(`HTTP/1.1 200 OK
 Server: deforlis/prealpha
@@ -41,6 +47,29 @@ Content-Type: text/html; charset=UTF-8
 Content-Length: %d
 `, len([]byte(body)))
 	return headers + body + "\n"
+}
+
+func linkifyPath(path string) string {
+	path = strings.TrimPrefix(path, "/")
+	path = strings.TrimSuffix(path, "/")
+	pathElements := strings.Split(path, "/")
+	lpath := "<a href=\"/\">🏠</a> / "
+	if pathElements[0] != "" {
+		for pei, pe := range pathElements {
+			if pei == 0 {
+				lpath += "<a href=\"/" + pe + "\">" + pe + "</a> / "
+			} else {
+				var cumpe string
+				for _, subpe := range pathElements[0:pei] {
+					cumpe += subpe + "/"
+				}
+				cumpe += pe + "/"
+				lpath += "<a href=\"/" + cumpe + "\">" + pe + "</a> / "
+			}
+		}
+	}
+
+	return lpath
 }
 
 func notFound(path string) []byte {
@@ -80,11 +109,14 @@ func catalogEntrieHTML(path string, e os.DirEntry) string {
 	path = strings.TrimSuffix(path, "/")
 	link := "/"
 	pathElements := strings.Split(path, "/")
-	for _, pe := range pathElements {
-		link += url.PathEscape(pe) + "/"
+	fmt.Println("pathElements[0] :" + pathElements[0])
+	if pathElements[0] != "" {
+		for _, pe := range pathElements {
+			link += url.PathEscape(pe) + "/"
+		}
 	}
 	link += url.PathEscape(e.Name())
-	fmt.Println("Link: " + link)
+	fmt.Println("link: " + link)
 	return fmt.Sprintf(`<tr>
 	<td>
 		%s
