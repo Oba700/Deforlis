@@ -46,7 +46,13 @@ func catalog(conn net.Conn, handler handler, BufferSize int) {
 		return
 	}
 	request := strings.Split(string(buf), "\n")
-	reqPath := strings.Split(request[0], " ")[1]
+	firstReqStr := strings.Split(request[0], " ")
+	reqPath := firstReqStr[1]
+	method := firstReqStr[0]
+	if method != "GET" {
+		resp := []byte("HTTP/1.1 405 Method Not Allowed\nServer: deforlis/prealpha\nContent-Type: text/html; charset=UTF-8\n\nСкористайтеся методом GET\n")
+		handlingTerminator(resp, true, conn, handler, BufferSize)
+	}
 	quPath, quErr := url.QueryUnescape(reqPath)
 	osPath := handler.Path + quPath
 	if quErr != nil {
