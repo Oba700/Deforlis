@@ -49,6 +49,7 @@ func catalog(conn net.Conn, handler handler, BufferSize int) {
 	request := strings.Split(string(buf), "\n")
 	firstReqStr := strings.Split(request[0], " ")
 	if len(firstReqStr) < 3 {
+		fmt.Println(conn.RemoteAddr(), "Розриваю з'єднання примусово через поганий ввод")
 		handlingTerminator([]byte(""), true, conn, handler, BufferSize)
 		return
 	}
