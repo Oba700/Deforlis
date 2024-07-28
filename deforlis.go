@@ -27,10 +27,10 @@ func main() {
 		if len(Binding.Address) == 0 {
 			panic("Не вказано адресу біндінгу")
 		}
-		fmt.Println(Binding.Address)
+		// fmt.Println(Binding.Address)
 		BindingHandler := Handlers[Binding.Handler]
 		if len(BindingHandler.Type) > 0 {
-			go bind(Binding, Handlers[Binding.Handler], Binding.Buffer)
+			go bind(Binding, Handlers[Binding.Handler], Binding.BufferSize)
 		} else {
 			panic(fmt.Sprintf("Хендлер %s вказаний для біндінгу %s якісь не дуже. Його не існує.", Binding.Handler, Binding.Description))
 		}

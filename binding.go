@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net"
 )
@@ -10,13 +11,24 @@ type binding struct {
 	Address     string
 	Handler     string
 	Encryption  encryption
-	Buffer      int
+	BufferSize  int
 }
 
 func bind(Binding binding, Handler handler, BufferSize int) {
-	ln, err := net.Listen("tcp", Binding.Address)
-	if err != nil {
-		panic(err)
+	var ln net.Listener
+	var err error
+	if Binding.Encryption.Enabled {
+		ln, err = tls.Listen("tcp", Binding.Address, craftTLSconfig(Binding.Encryption))
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("🔒", Binding.Address)
+	} else {
+		ln, err = net.Listen("tcp", Binding.Address)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("🔓", Binding.Address)
 	}
 	for {
 		conn, err := ln.Accept()

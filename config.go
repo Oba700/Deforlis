@@ -12,10 +12,6 @@ type config struct {
 	Handlers    []handler
 }
 
-type encryption struct {
-	Scheme string
-}
-
 func configfile(configFilePath string) config {
 	dat, err := os.ReadFile(configFilePath)
 	var Config config

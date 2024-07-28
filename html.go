@@ -109,14 +109,12 @@ func catalogEntrieHTML(path string, e os.DirEntry) string {
 	path = strings.TrimSuffix(path, "/")
 	link := "/"
 	pathElements := strings.Split(path, "/")
-	fmt.Println("pathElements[0] :" + pathElements[0])
 	if pathElements[0] != "" {
 		for _, pe := range pathElements {
 			link += url.PathEscape(pe) + "/"
 		}
 	}
 	link += url.PathEscape(e.Name())
-	fmt.Println("link: " + link)
 	return fmt.Sprintf(`<tr>
 	<td>
 		%s

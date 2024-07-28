@@ -1,3 +1,6 @@
 deforlis
 homework/*
 deforlis.json
+*.pem
+*.crt
+*.key

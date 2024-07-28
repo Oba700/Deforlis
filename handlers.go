@@ -40,12 +40,14 @@ func catalog(conn net.Conn, handler handler, BufferSize int) {
 	_, err := conn.Read((buf))
 	if err != nil {
 		if err == io.EOF {
-			fmt.Println("Помилка при читанні запиту")
+			fmt.Println(conn.RemoteAddr(), "З'ЄДНАННЯ РОЗІРВАНО")
+		} else {
 			fmt.Println(err)
 		}
 		return
 	}
 	request := strings.Split(string(buf), "\n")
+	//fmt.Println(request)
 	firstReqStr := strings.Split(request[0], " ")
 	reqPath := firstReqStr[1]
 	method := firstReqStr[0]
@@ -58,7 +60,7 @@ func catalog(conn net.Conn, handler handler, BufferSize int) {
 	if quErr != nil {
 		fmt.Println("URL запита попердолено")
 	}
-	fmt.Println(quPath)
+	//fmt.Println(quPath)
 	var needConnClose bool = true
 	for _, header := range request {
 		if strings.HasPrefix(header, "Connection:") && strings.Contains(header, "keep-alive") {
