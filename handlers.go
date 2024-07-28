@@ -48,7 +48,7 @@ func catalog(conn net.Conn, handler handler, BufferSize int) {
 	}
 	request := strings.Split(string(buf), "\n")
 	firstReqStr := strings.Split(request[0], " ")
-	if len(firstReqStr) < 2 {
+	if len(firstReqStr) < 3 {
 		handlingTerminator([]byte(""), true, conn, handler, BufferSize)
 		return
 	}
