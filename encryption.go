@@ -2,9 +2,12 @@ package main
 
 import (
 	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 type encryption struct {
@@ -12,12 +15,45 @@ type encryption struct {
 	Scheme         string
 	PrivateKeyURI  string
 	CertificateURI string
+	ExpirityCheck  expirityCheck
+}
+
+type expirityCheck struct {
+	Enabled         bool
+	CheckReqSeconds int
+	ToleranceHours  int
+}
+
+func loopExpirityCheck(needReRead chan bool, encBlock encryption) {
+	for {
+		certificate := getKey(encBlock.CertificateURI)
+		block, _ := pem.Decode([]byte(certificate))
+		if block == nil {
+			panic("Не вдалося декодувати сертіфікат в PEM під час перевіркі терміну дії сертіфікату")
+		}
+		cert, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			panic("Не вдалося розпарсити PEM під час перевіркі терміну дії сертіфікату" + err.Error())
+		}
+		if int(time.Until(cert.NotAfter).Hours()) < encBlock.ExpirityCheck.ToleranceHours {
+			var certId string
+			for _, n := range cert.DNSNames {
+				certId += n + " "
+			}
+			fmt.Println("Час оновлювати сертіфткат для [ " + certId + "]")
+		}
+		time.Sleep(time.Duration(encBlock.ExpirityCheck.CheckReqSeconds) * time.Second)
+	}
 }
 
 func craftTLSconfig(encBlock encryption) *tls.Config {
-	fmt.Println(tls.CipherSuites())
-	fmt.Println(tls.InsecureCipherSuites())
+	// fmt.Println(tls.CipherSuites())
+	// fmt.Println(tls.InsecureCipherSuites())
+	// fmt.Println(encBlock.Enabled)
 	privateKey := getKey(encBlock.PrivateKeyURI)
+	if privateKey == nil {
+		return nil
+	}
 	certificate := getKey(encBlock.CertificateURI)
 	pair, err := tls.X509KeyPair(certificate, privateKey)
 	if err != nil {
@@ -55,6 +91,7 @@ func getKey(uri string) []byte {
 			panic("Не знаю такого протокола" + uri)
 		}
 	} else {
-		panic("Вкажи протокол доступа до ключу. Зараз бачу " + uri)
+		return nil
+		// panic("Вкажи протокол доступа до ключу. Зараз бачу " + uri)
 	}
 }
